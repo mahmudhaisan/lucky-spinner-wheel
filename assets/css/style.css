@@ -1,0 +1,21 @@
+.product-input-qty-options {
+    margin-top: -40px;
+}
+
+
+.checkout-footer-sticky{
+    position: sticky !important;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 99999;
+}
+
+
+.hidden-important {
+    display: none !important;
+}
+
+.show-important {
+    display: flex !important;
+}
