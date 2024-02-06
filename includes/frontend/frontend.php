@@ -1,220 +1,129 @@
 <?php
 
-
-add_shortcode('carpet_clean_service_shortcode', 'cyc_carpet_clean_service_shortcode');
-
-function cyc_carpet_clean_service_shortcode()
+// Function to add the gift button with spin result
+function add_gift_button()
 {
-    ob_start(); // Start output buffering
+    if (is_user_logged_in()) {
+        $user_id = get_current_user_id();
+        $cart_amount_threshold = 0; // Set your cart amount threshold
+        $required_product_count = 5; // Set the required number of products
+        $required_categories = array('category1', 'category2'); // Add your required category slugs
 
-    WC()->cart->empty_cart();
-
-?>
-
-    <div class="row bg-dark text-white pt-5 pb-5">
-        <div class="col-10">
-            <!-- Your site logo or other content goes here -->
-        </div>
-        <div class="col-2"> <!-- Add ml-auto class here -->
-            <?php
-            // Get the cart URL
-            $cart_url = wc_get_cart_url();
-
-            // Get the cart count
-            $cart_count = WC()->cart->get_cart_contents_count();
+        // Check if cart amount or product count meets the conditions
+        if (is_cart_conditions_met($cart_amount_threshold, $required_product_count, $required_categories)) {
+            $winning_segment_value = get_user_meta($user_id, 'winning_segment', true);
             ?>
-            <a href="<?php echo esc_url($cart_url); ?>" class="cart-icon">
-                <i class="fas fa-shopping-cart fa-lg"></i>
-                
-                    <span class="cart-count"><?php echo esc_html($cart_count); ?></span>
-                
-            </a>
-        </div>
-    </div>
 
+            <div id="popup-overlay" class="spin-wheel-row" style="display: none;">
+                <div id="popup-container">
+                    <div id="popup-content">
+                        <button id="popup-close-btn"><i class="fa fa-times" aria-hidden="true"></i></button>
 
-    <div class="container mt-5 mb-5">
+                        <?php if ($winning_segment_value) : ?>
 
-        <div class="row">
-            <!-- Left Side - 3 Columns -->
-            <div class="col-md-3">
-                <p>(303) 857-5016</p>
-                <p>(720) 605-9002</p>
-                <p><strong>Hours</strong></p>
-                <!-- Days and Hours Table -->
-                <table class="table">
-
-                    <tbody>
-                        <tr>
-                            <td>Sunday</td>
-                            <td>8:00am - 7:00pm</td>
-                        </tr>
-                        <tr>
-                            <td>Monday</td>
-                            <td>8:00am - 7:00pm</td>
-                        </tr>
-                        <tr>
-                            <td>Tuesday</td>
-                            <td>8:00am - 7:00pm</td>
-                        </tr>
-                        <tr>
-                            <td>Wednesday</td>
-                            <td>8:00am - 7:00pm</td>
-                        </tr>
-                        <tr>
-                            <td>Thursday</td>
-                            <td>8:00am - 7:00pm</td>
-                        </tr>
-                        <tr>
-                            <td>Friday</td>
-                            <td>8:00am - 7:00pm</td>
-                        </tr>
-                        <tr>
-                            <td>Saturday</td>
-                            <td>8:00am - 7:00pm</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Right Side - 9 Columns -->
-            <div class="col-md-9">
-
-                <div class="row mb-5">
-                    <div class="col-md-6">
-                        <!-- Text on the left -->
-                        <h3>Our services</h3>
-                    </div>
-                    <div class="col-md-6">
-                        <!-- Search input with icon on the right -->
-                        <!-- <div class="input-group mb-3">
-                            <input type="text" class="form-control" placeholder="Search..." aria-label="Search" aria-describedby="basic-addon2">
-                            <div class="input-group-append">
-                                <span class="input-group-text" id="basic-addon2">
-                                    <i class="fa fa-search"></i> Replace with your preferred search icon class
-                                </span>
+                            <div id="spin-result-content" class="bg-dark text-white p-4 rounded mt-3">
+                                <h1 class="display-4">You just hit the jackpot!</h1>
+                                <div id="show-spin-result" class="mb-3 display-4"><?php echo  $winning_segment_value; ?></div>
+                                <p class="h4">Ends on: <span class="text-warning">[Your Date and Time]</span></p>
+                                <button class="btn btn-warning rounded-pill py-2 px-4 w-100 mt-3">
+                                    Get It Now
+                                </button>
                             </div>
-                        </div> -->
-                    </div>
-                    <p>Price is an accurate estimate based on the standard scope of work</p>
-                </div>
+                        <?php endif; ?>
 
-
-
-                <div class="container">
-                    <?php
-                    // Get all subcategories of the 'carpet' category
-                    $carpet_subcategories = get_terms('product_cat', array(
-                        'parent'     => get_term_by('slug', 'carpet', 'product_cat')->term_id,
-                        'hide_empty' => false,
-                    ));
-
-                    foreach ($carpet_subcategories as $subcategory) :
-                    ?>
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h4><?php echo esc_html($subcategory->name); ?></h4>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <?php
-                            $args = array(
-                                'post_type'      => 'product',
-                                'posts_per_page' => -1,
-                                'tax_query'      => array(
-                                    array(
-                                        'taxonomy' => 'product_cat',
-                                        'field'    => 'term_id',
-                                        'terms'    => $subcategory->term_id,
-                                    ),
-                                ),
-                            );
-
-                            $loop = new WP_Query($args);
-
-                            while ($loop->have_posts()) : $loop->the_post();
-                                global $product;
-
-                                $product_id = $product->id;
-                            ?>
-                                <div class="col-md-4">
-                                    <div class="card mt-5">
-                                        <?php
-                                        if (has_post_thumbnail()) {
-                                            echo '<img src="' . get_the_post_thumbnail_url($product->ID, 'medium') . '" class="card-img-top" alt="Product Image">';
-                                        }
-                                        ?>
-
-
-
-                                        <div class="card-body product-card-item">
-
-
-
-                                            <div class="product-input-qty-options">
-                                                <div class="input-group product-input-qty-row" style="display: none;">
-                                                    <span class="input-group-btn">
-                                                        <button type="button" class="btn btn-danger btn-number product-quantity-change" data-type="minus" data-field="quant">
-                                                            <i class="fa fa-minus"></i>
-                                                        </button>
-                                                    </span>
-
-                                                    <input type="hidden" class="carpet_single_product_info" product-id="<?php echo $product_id ?>">
-                                                    <input type="text" name="quant" class="form-control input-number-qty" value="0" min="0" max="999999">
-
-                                                    <span class="input-group-btn">
-                                                        <button type="button" class="btn btn-success btn-number product-quantity-change" data-type="plus" data-field="quant">
-                                                            <i class="fa fa-plus"></i>
-                                                        </button>
-                                                    </span>
-                                                </div>
-
-                                                <div class="input-group d-flex justify-content-end product-plus-btn-show" >
-                                                    <button type="button" class="btn btn-success product-quantity-change" data-type="plus" data-field="quant" >
-                                                        <i class="fa fa-plus"></i>
-                                                    </button>
-                                                </div>
-                                            
-                                            
-                                            </div>
-
-                                            <div class="text-center mx-auto mt-5">
-                                                <h5 class="card-title"><?php the_title(); ?></h5>
-                                                <p class="card-price"><?php echo $product->get_price_html() . '/Each'; ?></p>
-                                                <a href="" class="product-card-details">Details</a>
-                                            </div>
-
-
-
-
-                                        </div>
-
-
-
-
-
+                        <?php if (!$winning_segment_value) : ?>
+                            <div id="spin-wheel-content">
+                                <div id="wheel">
+                                    <div class="indicator">
+                                        <img src="<?php echo LSWD_PLUGINS_DIR_URL . 'assets/icons/indicator.png'; ?>" alt="Example Image">
                                     </div>
+                                    <canvas id="canvas" width="500" height="500"></canvas>
+                                    <button id="spin" class="spin-wheel-btn">Spin</button>
                                 </div>
-                            <?php endwhile; ?>
-                        </div>
-                    <?php endforeach; ?>
-                    <?php wp_reset_postdata(); ?>
+
+                                <!-- Updated Bootstrap 5 "Spin Now" button -->
+                                <button id="spin-now-btn" class="btn btn-primary rounded-pill py-2 px-4 spin-wheel-btn w-100 mt-3">
+                                    Spin Now
+                                </button>
+                            </div>
+
+                            <div id="spin-result-content" class="bg-dark text-white p-4 rounded mt-3" style="display: none;">
+                                <h1 class="display-4">You just hit the jackpot!</h1>
+                                <div id="show-spin-result" class="mb-3 display-4"></div>
+                                <p class="h4">Ends on: <span class="text-warning">[Your Date and Time]</span></p>
+                                <button class="btn btn-warning rounded-pill py-2 px-4 w-100 mt-3">
+                                    Get It Now
+                                </button>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
-
-
-                <!-- Sticky bar at the bottom -->
-                <div class="d-none d-md-block  bg-dark text-white p-3 checkout-footer-sticky mt-5">
-                    This is your sticky bar content.
-                </div>
-
-
             </div>
-        </div>
-    </div>
 
+            <div id="gift-button" style="display: block;">You have a gift 🎁</div>
 
-<?php
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    var giftButton = document.getElementById('gift-button');
+                    var spinNowBtn = document.getElementById('spin-now-btn');
 
-    $output = ob_get_clean(); // Get the output and clean the buffer
-    return $output;
+                    // Show/hide gift button based on cart conditions
+                    if (is_cart_conditions_met(<?php echo $cart_amount_threshold; ?>, <?php echo $required_product_count; ?>, <?php echo json_encode($required_categories); ?>)) {
+                        giftButton.style.display = 'block';
+                    } else {
+                        giftButton.style.display = 'none';
+                    }
+
+                    // Add event listener to spin now button
+                    spinNowBtn.addEventListener('click', function () {
+                        // Show the spin wheel popup
+                        document.getElementById('popup-overlay').style.display = 'block';
+                    });
+                });
+            </script>
+
+        <?php }
+    }
 }
+add_action('wp_footer', 'add_gift_button');
+
+// Function to check cart conditions
+function is_cart_conditions_met($cart_amount_threshold, $required_product_count, $required_categories)
+{
+    // Check if cart amount is greater than or equal to the threshold
+    if (WC()->cart->total >= $cart_amount_threshold) {
+        return true;
+    }
+
+    // Check if the required number of products from specific categories are in the cart
+    $product_count_in_categories = 0;
+
+    foreach (WC()->cart->get_cart() as $cart_item) {
+        $product_id = $cart_item['product_id'];
+        $product_categories = get_the_terms($product_id, 'product_cat');
+
+        if ($product_categories) {
+            foreach ($product_categories as $category) {
+                if (in_array($category->slug, $required_categories)) {
+                    $product_count_in_categories++;
+                    break; // Break out of the inner loop once a match is found for the current product
+                }
+            }
+        }
+    }
+
+    return $product_count_in_categories >= $required_product_count;
+}
+
+// Update user meta value to empty when an order is placed
+function update_user_meta_on_order_placement($order_id) {
+    $user_id = get_current_user_id();
+
+    // Check if the user ID is valid and the order ID is valid
+    if ($user_id && $order_id) {
+        // Update the user meta value to empty
+        update_user_meta($user_id, 'winning_segment', '');
+    }
+}
+add_action('woocommerce_new_order', 'update_user_meta_on_order_placement', 10, 1);
+?>
