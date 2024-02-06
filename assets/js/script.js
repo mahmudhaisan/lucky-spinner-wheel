@@ -13,23 +13,24 @@ jQuery(document).ready(function ($) {
 
     // Wheel functionality
     const canvas = document.getElementById('canvas');
-    // console.log(canvas); // Debugging line
+
+
     const ctx = canvas.getContext('2d');
 
-    var spin_1 =JSON.parse( lucky_spin_wheel.group1);
-    var spin_2 =JSON.parse( lucky_spin_wheel.group2);
-    var spin_3 =JSON.parse( lucky_spin_wheel.group3);
-    var spin_4 =JSON.parse( lucky_spin_wheel.group4);
-    var spin_5 =JSON.parse( lucky_spin_wheel.group5);
-    var spin_6 =JSON.parse( lucky_spin_wheel.group6);
 
-  
+
+    var spin_1 = JSON.parse(lucky_spin_wheel.group1);
+    var spin_2 = JSON.parse(lucky_spin_wheel.group2);
+    var spin_3 = JSON.parse(lucky_spin_wheel.group3);
+    var spin_4 = JSON.parse(lucky_spin_wheel.group4);
+    var spin_5 = JSON.parse(lucky_spin_wheel.group5);
+    var spin_6 = JSON.parse(lucky_spin_wheel.group6);
 
 
     const segments = [spin_1, spin_2, spin_3, spin_4, spin_5, spin_6];
 
 
-    console.log(segments);
+    // console.log(segments);
 
 
     // const segments = ['No Luck!', '10% Discsount', '20 NIS Fixed Discount', '1 Free Product', '5% Discount', '10 NIS Fixed Discount'];
@@ -137,7 +138,7 @@ jQuery(document).ready(function ($) {
             $('#spin-wheel-content').hide(); // Make sure the result is visible
 
 
-            console.log(winningSegment);
+            // console.log(winningSegment);
             // console.log(resultText);
 
 
@@ -152,6 +153,8 @@ jQuery(document).ready(function ($) {
 
     // Function to send winningSegment via AJAX
     function sendWinningSegment(winningSegment) {
+
+        console.log(winningSegment);
         // Make an AJAX request
         $.ajax({
             type: 'POST',
@@ -181,8 +184,53 @@ jQuery(document).ready(function ($) {
 
 
 
-   
-   
+
+
+    // time countdown
+    function startCountdown() {
+        // Set the date and time to countdown to
+        var countDownDate = new Date("Feb 6, 2024 23:37:25").getTime();
+
+        // Update the countdown every 1 second
+        var x = setInterval(function () {
+            // Get the current date and time
+            var now = new Date().getTime();
+
+            // Calculate the remaining time
+            var distance = countDownDate - now;
+
+            // Calculate days, hours, minutes, and seconds
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // Display the countdown in the element with id="countdown"
+            $("#countdown").html(`
+                <span class="bg-secondary text-light p-1 rounded me-1">${days}d</span>
+                <span class="bg-secondary text-light p-1 rounded me-1">${hours}h</span>
+                <span class="bg-secondary text-light p-1 rounded me-1">${minutes}m</span>
+                <span class="bg-secondary text-light p-1 rounded">${seconds}s</span>
+            `);
+
+            // If the countdown is finished, display a message
+            if (distance < 0) {
+                clearInterval(x);
+                $("#countdown").html("EXPIRED");
+            }
+        }, 1000);
+    }
+
+    // Call the function to start the countdown
+    startCountdown();
+
+
+
+
+
+
+
+
 
 });
 

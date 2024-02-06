@@ -153,11 +153,13 @@ function render_spin_wheel_general_settings()
             $cart_amount = isset($_POST['cartAmount']) ? sanitize_text_field($_POST['cartAmount']) : '';
             $categories = isset($_POST['categories']) ? array_map('intval', $_POST['categories']) : array();
             $product_count = isset($_POST['productCount']) ? sanitize_text_field($_POST['productCount']) : '';
+            $spin_expiry = isset($_POST['spinExpiry']) ? sanitize_text_field($_POST['spinExpiry']) : '';
 
             // Save to options
             update_option('min_cart_amount', $cart_amount);
             update_option('selected_categories_options', $categories);
             update_option('min_product_count', $product_count);
+            update_option('spin_expiry', $spin_expiry);
 
             if ($cart_amount !== '' && !empty($categories) && $product_count !== '') {
                 echo '<div class="alert alert-success" role="alert">Conditions updated successfully!</div>';
@@ -203,6 +205,16 @@ function render_spin_wheel_general_settings()
                     <input type="number" class="form-control" id="productCountInput" name="productCount" placeholder="Enter product count" value="<?php echo esc_attr(get_option('min_product_count')); ?>">
                 </div>
             </div>
+
+            <div class="row mb-3">
+                <label for="" class="col-sm-2 col-form-label">Spin Expiry: (Days)</label>
+                <div class="col-sm-4">
+                    <input type="number" class="form-control" id="spinExpiryInput" name="spinExpiry" placeholder="Enter spin expiry date" value="<?php echo esc_attr(get_option('spin_expiry')); ?>">
+                </div>
+            </div>
+
+
+
             <div class="row mb-3">
                 <div class="col-sm-8">
                     <button type="submit" name="save_conditions_settings" class="btn btn-primary">Add Rules</button>
