@@ -52,14 +52,15 @@ function lswd_custom_enqueue_assets()
     $custom_form_data_group_5 = json_encode(get_option('custom_form_data_group_5'));
     $custom_form_data_group_6 = json_encode(get_option('custom_form_data_group_6'));
    
+   
+    $spin_expiry = (get_option('spin_expiry'));
+   
   
 
     wp_enqueue_style('bootstrap-min', plugin_dir_url(__FILE__) . 'assets/css/bootstrap.min.css');
     wp_enqueue_style('fontawesome-css-min', plugin_dir_url(__FILE__) . 'assets/css/fontawesome.min.css');
    
     wp_enqueue_style('style-css', plugin_dir_url(__FILE__) . 'assets/css/style.css');
-
-
 
     wp_enqueue_script('bootstrap-min', plugin_dir_url(__FILE__) . 'assets/js/bootstrap.min.js', array('jquery'), '1.0.0', true);
   
@@ -75,12 +76,15 @@ function lswd_custom_enqueue_assets()
             'group4' => $custom_form_data_group_4,
             'group5' => $custom_form_data_group_5,
             'group6' => $custom_form_data_group_6,
+            'spin_expiry_day' => $spin_expiry
+
         )
     );
 }
 
 include_once LSWD_PLUGINS_PATH . '/includes/admin/admin.php';
 include_once LSWD_PLUGINS_PATH . '/includes/frontend/frontend.php';
+include_once LSWD_PLUGINS_PATH . '/functions.php';
 
 if (is_admin() && defined('DOING_AJAX') && DOING_AJAX) {
     include_once LSWD_PLUGINS_PATH . '/ajax.php';

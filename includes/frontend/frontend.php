@@ -8,19 +8,23 @@ function add_gift_button()
     if (is_user_logged_in()) {
         $user_id = get_current_user_id();
 
+        // conditions part
+        $cart_conditions_data = wheel_cart_conditions_values();
+        $cart_category_info = get_cart_product_categories_info();
 
 
+        $winning_segment_option = $cart_conditions_data['winning_segment_type'];
+        $min_cart_amount = isset($cart_conditions_data['min_cart_amount']) ? intval($cart_conditions_data['min_cart_amount']) : 0;
+        $selected_categories_options = $cart_conditions_data['selected_categories_options'];
+        $min_product_count = isset($cart_conditions_data['min_product_count']) ? intval($cart_conditions_data['min_product_count']) : 0;
+        $spin_expiry_day = $cart_conditions_data['spin_expiry_day'];
+        $total_product_price = isset($cart_conditions_data['total_product_price']) ? intval($cart_conditions_data['total_product_price']) : 0;
         // Check if cart amount or product count meets the conditions
         $winning_segment_value = get_user_meta($user_id, 'winning_segment', true);
 
+        $category_option_condition = get_option('cat_amount_condition');
+        $category_condition_result = check_category_condition();
 
-        print_r($winning_segment_value);
-
-        // Check if 'displayText' key is set, if not set, assign null
-        $selected_spin_segmaant_text = isset($winning_segment_value['displayText']) ? $winning_segment_value['displayText'] : null;
-
-        // Check if 'type' key is set, if not set, assign null
-        $selected_spin_segmaant_type = isset($winning_segment_value['type']) ? $winning_segment_value['type'] : null;
 
 
 ?>
@@ -30,22 +34,64 @@ function add_gift_button()
                 <div id="popup-content">
                     <button id="popup-close-btn"><i class="fa fa-times" aria-hidden="true"></i></button>
 
+                    <?php if ($winning_segment_value) {
+                        $winning_segment_display_text = isset($winning_segment_value['displayText']) ? $winning_segment_value['displayText'] : '';
+                        $winning_segment_type = isset($winning_segment_value['type']) ? $winning_segment_value['type'] : '';
+                        $winning_segment_amount = isset($winning_segment_value['amount']) ? $winning_segment_value['amount'] : '';
+                        $winning_segment_text = isset($winning_segment_value['text']) ? $winning_segment_value['text'] : '';
 
-                    <?php if ($winning_segment_value ) : ?>
-                        <div id="spin-result-content" class="bg-dark text-white p-4 rounded mt-3">
-                            <h1 class="display-4">You just hit the jackpot!!</h1>
-                            <div id="show-spin-result" class="mb-3 display-4"><?php echo $selected_spin_segmaant_text; ?></div>
-                            <p class="h4">Ends on: <span class="text-warning">[Your Date and Time]</span></p>
-                            <button class="btn btn-warning rounded-pill py-2 px-4 w-100 mt-3">
-                                Get It Now
-                            </button>
+                        switch ($winning_segment_type) {
+                            case 'fixed_discount':
+                                $selected_spin_segment_number = $winning_segment_amount;
+                                break;
+                            case 'percentage_discount':
+                                $selected_spin_segment_number = $winning_segment_amount . '%';
+                                break;
+                            case 'free_product':
+                                $selected_spin_segment_number = $winning_segment_amount;
+                                break;
+                            case 'no_luck':
+                            case 'add_another_spin':
+                                $selected_spin_segment_number = '';
+                                break;
+                            default:
+                                // Handle unexpected segment types
+                                break;
+                        }
+
+                        // Assign common text value for all segment types
+                        $selected_spin_segmant_text = $winning_segment_text;
+
+                    ?>
+                        <div class="container">
+                            <div id="spin-result-content" class="bg-dark text-white p-5 rounded mt-3">
+                                <h1 class="display-6 text-dark">You just hit the jackpot!!</h1>
+                                <div id="show-spin-result" class=" mb-3">
+                                    <div class="container mt-2 p-3 text-center">
+                                        <p class="display-4 mb-0 fw-bold"><?php echo  $selected_spin_segment_number; ?></p>
+                                        <p class="display-5 mb-0"><?php echo   $selected_spin_segmant_text; ?></p>
+                                    </div>
+
+                                </div>
+                                <p class="h4 text-dark">Ends on:
+                                    <span class="text-warning" id="countdown">
+                                    </span>
+                                </p>
+
+                                <button class="btn btn-warning rounded-pill py-2 px-4 w-100 mt-3">
+                                    Get It Now
+                                </button>
+                            </div>
                         </div>
-                    <?php endif; ?>
+
+
+                    <?php }; ?>
 
 
 
 
-                    <?php if (!$winning_segment_value ) : ?>
+                    <!-- show on first -->
+                    <?php if (!$winning_segment_value) : ?>
                         <div id="spin-wheel-content">
                             <div id="wheel">
                                 <div class="indicator">
@@ -61,59 +107,53 @@ function add_gift_button()
                             </button>
                         </div>
 
-                        <div id="spin-result-content" class="bg-dark text-white p-4 rounded mt-3" style="display: none;">
-                            <h1 class="display-4">You just hit the jackpot!</h1>
-                            <div id="show-spin-result" class="mb-3 display-4"></div>
-                            <p class="h4 bg-light p-3 rounded mb-3 text-warning">Ends on:
-                                <span class="text-warning" id="countdown">
-                                </span>
-                            </p>
 
-                            <button class="btn btn-warning rounded-pill py-2 px-4 w-100 mt-3">
-                                Get It Now
-                            </button>
+                        <div class="container updated-segmant-data">
+
                         </div>
+
+                        <div class="show-result-content">
+
+                        </div>
+
+
                     <?php endif; ?>
                 </div>
             </div>
         </div>
 
-        <div id="gift-button" style="display: block;">You have a gift 🎁</div>
 
 
-    <?php }
+
+
+
+
+
+        <div class="gift-button-wrapper">
+
+
+
+
+            <?php
+
+
+
+            if ($total_product_price >= $min_cart_amount && $category_condition_result)
+
+                echo '<div id="gift-button" style="display: block;">You have a gift 🎁</div>';
+
+
+            ?>
+
+        </div>
+
+
+<?php }
 }
 
 
 add_action('wp_footer', 'add_gift_button');
 
-// Function to check cart conditions
-function is_cart_conditions_met($cart_amount_threshold, $required_product_count, $required_categories)
-{
-    // Check if cart amount is greater than or equal to the threshold
-    if (WC()->cart->total >= $cart_amount_threshold) {
-        return true;
-    }
-
-    // Check if the required number of products from specific categories are in the cart
-    $product_count_in_categories = 0;
-
-    foreach (WC()->cart->get_cart() as $cart_item) {
-        $product_id = $cart_item['product_id'];
-        $product_categories = get_the_terms($product_id, 'product_cat');
-
-        if ($product_categories) {
-            foreach ($product_categories as $category) {
-                if (in_array($category->slug, $required_categories)) {
-                    $product_count_in_categories++;
-                    break; // Break out of the inner loop once a match is found for the current product
-                }
-            }
-        }
-    }
-
-    return $product_count_in_categories >= $required_product_count;
-}
 
 // Update user meta value to empty when an order is placed
 function update_user_meta_on_order_placement($order_id)
@@ -122,8 +162,11 @@ function update_user_meta_on_order_placement($order_id)
 
     // Check if the user ID is valid and the order ID is valid
     if ($user_id && $order_id) {
+
+
         // Update the user meta value to empty
         update_user_meta($user_id, 'winning_segment', '');
+        update_user_meta($user_id, 'winning_segment_updated', '');
     }
 }
 add_action('woocommerce_new_order', 'update_user_meta_on_order_placement', 10, 1);
@@ -137,57 +180,132 @@ add_action('woocommerce_new_order', 'update_user_meta_on_order_placement', 10, 1
 
 
 
-// check cart data
-add_action('wp_footer', 'custom_jquery_add_to_cart_script', 10);
-function custom_jquery_add_to_cart_script()
+add_action('woocommerce_cart_calculate_fees', 'apply_discount_fee');
+function apply_discount_fee()
 {
-    if (is_shop() || is_product_category() || is_product_tag()) : // Only for archives pages
-    ?>
-        <script type="text/javascript">
-            // Ready state
-            (function($) {
+    // Your code to calculate and apply the fee
 
-                $('body').on('added_to_cart', function(event, fragments, cart_hash, $button) {
-                    $.ajax({
-                        url: lucky_spin_wheel.ajaxurl,
-                        type: 'POST',
-                        data: {
-                            action: 'get_cart_info'
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                // Handle successful response
-                                var winning_segment_type = response.data.winning_segment_type;
-                                var selected_categories_options = response.data.selected_categories_options;
-                                var min_cart_amount = response.data.min_cart_amount;
-                                var min_product_count = response.data.min_product_count;
-                                var spin_expiry_day = response.data.spin_expiry_day;
+    // Get current user ID
+    $current_user_id = get_current_user_id();
+    // Get user's winning segment
+    $winning_segment = get_user_meta($current_user_id, 'winning_segment', true);
 
-                                // cart
-                                var total_product_price = response.data.total_product_price;
-                                var selected_category_product_in_cart = response.data.selected_category_product_in_cart;
-                                var total_products_in_selected_categories = response.data.total_products_in_selected_categories;
+    // Extract winning segment type and amount
+    $winning_segment_type = isset($winning_segment['type']) ? $winning_segment['type'] : null;
+    $winning_segment_amount = isset($winning_segment['amount']) ? intval($winning_segment['amount']) : 0;
+    $winning_segment_free_product_id = isset($winning_segment['free_product_id']) ? intval($winning_segment['free_product_id']) : 0;
+
+    $cart_conditions_data = wheel_cart_conditions_values();
+    $category_condition_result = check_category_condition();
 
 
-
-                                console.log(total_product_price);
-                                console.log(selected_category_product_in_cart);
-                                console.log(total_products_in_selected_categories);
-
-                            } else {
-                                // Handle error response
-                                console.error(response.data);
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error(error); // Log any AJAX errors
-                        }
-                    });
-                });
+    $total_product_price = isset($cart_conditions_data['total_product_price']) ? intval($cart_conditions_data['total_product_price']) : 0;
+    $min_cart_amount = isset($cart_conditions_data['min_cart_amount']) ? intval($cart_conditions_data['min_cart_amount']) : 0;
 
 
-            })(jQuery); // "jQuery" Working with WP (added the $ alias as argument)
-        </script>
-<?php
-    endif;
+    if ($category_condition_result && $total_product_price >= $min_cart_amount) {
+
+        if ($winning_segment_type == 'fixed_discount') {
+            $fixed_discount_amount = $winning_segment_amount; // Convert the amount to a percentage 
+            // Apply the discount
+            WC()->cart->add_fee('Discount', -$fixed_discount_amount);
+            $cart_total_with_discount = WC()->cart->total; // Get the cart total with discount
+        }
+
+        if ($winning_segment_type == 'percentage_discount') {
+            $discount_percentage = $winning_segment_amount / 100; // Convert the amount to a percentage 
+            // Calculate the discount amount
+            $discount_amount = WC()->cart->get_subtotal() * $discount_percentage;
+            // Apply the discount
+            WC()->cart->add_fee('Discount', -$discount_amount);
+        }
+    }
 }
+
+
+
+
+
+
+
+add_action('woocommerce_before_calculate_totals', 'my_custom_cart_items_raw_output');
+
+function my_custom_cart_items_raw_output($cart_object)
+{
+
+    foreach ($cart_object->get_cart() as $item) {
+
+        if (array_key_exists('custom_price', $item)) {
+            $item['data']->set_price($item['custom_price']);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+add_action('woocommerce_before_calculate_totals', 'check_and_update_cart_item', 10, 1);
+
+function check_and_update_cart_item($cart)
+{
+
+
+    
+    // Get current user ID
+    $current_user_id = get_current_user_id();
+    // Get user's winning segment
+    $winning_segment = get_user_meta($current_user_id, 'winning_segment', true);
+    
+    $found = false;
+    // Extract winning segment type and amount
+    $winning_segment_type = isset($winning_segment['type']) ? $winning_segment['type'] : null;
+    $winning_segment_amount = isset($winning_segment['amount']) ? intval($winning_segment['amount']) : 0;
+    $winning_segment_free_product_id = isset($winning_segment['free_product_id']) ? intval($winning_segment['free_product_id']) : 0;
+    $cart_conditions_data = wheel_cart_conditions_values();
+    $category_condition_result = check_category_condition();
+    $total_product_price = isset($cart_conditions_data['total_product_price']) ? intval($cart_conditions_data['total_product_price']) : 0;
+    $min_cart_amount = isset($cart_conditions_data['min_cart_amount']) ? intval($cart_conditions_data['min_cart_amount']) : 0;
+
+
+    if ($category_condition_result && $total_product_price >= $min_cart_amount) {
+        if ($winning_segment_type == 'free_product') {
+
+            // Check if the product with ID 23 and zero price is already in the cart
+            foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+                if ($cart_item['product_id'] == $winning_segment_free_product_id && $cart_item['data']->get_price() == 0) {
+                    $found = true;
+
+                    $cart->cart_contents[$cart_item_key]['quantity'] = 1;
+
+                    break; // Stop the loop
+                }
+            }
+
+            // If the product was not found, add it to the cart
+            if (!$found) {
+                wc()->cart->add_to_cart($winning_segment_free_product_id, 1, 0, array(), array('custom_price' => 0));
+            }
+        }
+    } else {
+
+        // Check if the product with ID 23 and zero price is already in the cart
+        foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+            if ($cart_item['product_id'] == $winning_segment_free_product_id && $cart_item['data']->get_price() == 0) {
+                $found = true;
+
+                unset( $cart->cart_contents[ $cart_item_key ] );
+
+                break; // Stop the loop
+            }
+        }
+    }
+}
+
+
+

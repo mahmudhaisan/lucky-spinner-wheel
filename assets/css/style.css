@@ -134,5 +134,14 @@
 
 
 #spin-result-content{
-    background-color: #F5CE9A;
+    background: linear-gradient(123.85deg, #F5CE9A 0%, #F7D4A7 18.1%, #FFFAF1 100%);
+    border-radius: 25.8498px;
 }
+
+
+
+#show-spin-result{
+    background: linear-gradient(105.68deg, #C07A38 -0.01%, #FFD09C 111.61%, #C07A38 215.03%, #F7C889 328.3%, #F7C889 328.3%);
+    border-radius: 15.5099px;
+}
+
