@@ -63,6 +63,24 @@ function add_gift_button()
                         $selected_spin_segmant_text = $winning_segment_text;
 
                     ?>
+                        <div id="spin-wheel-content" style="display: none;">
+                            <div id="wheel">
+                                <div class="indicator">
+                                    <img src="<?php echo LSWD_PLUGINS_DIR_URL . 'assets/icons/indicator.png'; ?>" alt="Example Image">
+                                </div>
+                                <canvas id="canvas" width="500" height="500"></canvas>
+                                <button id="spin" class="spin-wheel-btn">Spin</button>
+                            </div>
+
+                            <div class="add_new_spin_chance">
+
+                            </div>
+
+                            <!-- Updated Bootstrap 5 "Spin Now" button -->
+                            <button id="spin-now-btn" class="btn btn-primary rounded-pill py-2 px-4 spin-wheel-btn w-100 mt-3">
+                                Spin Now
+                            </button>
+                        </div>
                         <div class="container">
                             <div id="spin-result-content" class="bg-dark text-white p-5 rounded mt-3">
                                 <h1 class="display-6 text-dark">You just hit the jackpot!!</h1>
@@ -79,7 +97,7 @@ function add_gift_button()
                                 </p>
 
                                 <button class="btn btn-warning rounded-pill py-2 px-4 w-100 mt-3">
-                                    Get It Now
+                                    <a href="<?php echo esc_url(wc_get_cart_url()); ?>">Get It Now</a>
                                 </button>
                             </div>
                         </div>
@@ -99,6 +117,10 @@ function add_gift_button()
                                 </div>
                                 <canvas id="canvas" width="500" height="500"></canvas>
                                 <button id="spin" class="spin-wheel-btn">Spin</button>
+                            </div>
+
+                            <div class="add_new_spin_chance">
+
                             </div>
 
                             <!-- Updated Bootstrap 5 "Spin Now" button -->
@@ -256,12 +278,12 @@ function check_and_update_cart_item($cart)
 {
 
 
-    
+
     // Get current user ID
     $current_user_id = get_current_user_id();
     // Get user's winning segment
     $winning_segment = get_user_meta($current_user_id, 'winning_segment', true);
-    
+
     $found = false;
     // Extract winning segment type and amount
     $winning_segment_type = isset($winning_segment['type']) ? $winning_segment['type'] : null;
@@ -292,6 +314,11 @@ function check_and_update_cart_item($cart)
                 wc()->cart->add_to_cart($winning_segment_free_product_id, 1, 0, array(), array('custom_price' => 0));
             }
         }
+
+        if ($winning_segment_type == 'add_another_spin') {
+            update_user_meta($current_user_id, 'winning_segment', '');
+            update_user_meta($current_user_id, 'winning_segment_updated', '');
+        }
     } else {
 
         // Check if the product with ID 23 and zero price is already in the cart
@@ -299,7 +326,7 @@ function check_and_update_cart_item($cart)
             if ($cart_item['product_id'] == $winning_segment_free_product_id && $cart_item['data']->get_price() == 0) {
                 $found = true;
 
-                unset( $cart->cart_contents[ $cart_item_key ] );
+                unset($cart->cart_contents[$cart_item_key]);
 
                 break; // Stop the loop
             }
@@ -309,3 +336,127 @@ function check_and_update_cart_item($cart)
 
 
 
+
+
+// Function to retrieve event types from Paddle API using wp_remote_get
+function get_paddle_event_types()
+{
+    $api_url = 'https://sandbox-api.paddle.com/event-types';
+    $post_api_url = 'https://sandbox-api.paddle.com/transactions/preview';
+    $product_data_url = 'https://sandbox-api.paddle.com/products';
+
+
+    $access_token = '27b507c8a7fc7b146cea2c706fe3299c14ad770c341e9c134e';
+
+    // Setup GET request arguments
+    $get_args = array(
+        'headers' => array(
+            'Authorization' => 'Bearer ' . $access_token
+        )
+    );
+
+    // Corrected $post_data array
+    $post_data = array(
+        'items' => array(
+            array(
+                'quantity' => 20,
+                'price' => array(
+                    'description' => 'Digital',
+                    'unit_price' => array(
+                        'amount' => '10',
+                        'currency_code' => 'USD',
+                    ),
+                    'product' => array(
+                        'name' => 'digital good',
+                        'tax_category' => 'digital-goods'
+                    )
+                )
+            )
+        ),
+    );
+
+
+
+
+
+    // Setup POST request arguments
+    $post_args = array(
+        'body' => json_encode($post_data),
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $access_token
+        )
+    );
+
+
+
+    // Setup POST request arguments
+    $post_args = array(
+        'body' => json_encode($post_data),
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Authorization' => 'Bearer ' . $access_token
+        )
+    );
+
+
+
+    // Make the GET request
+    $get_response = wp_remote_get($api_url, $get_args);
+
+    // Make the POST request
+    $post_response = wp_remote_post($post_api_url, $post_args);
+
+    // Check for errors in GET request
+    if (is_wp_error($get_response)) {
+        return $get_response;
+    }
+
+    // Check for errors in POST request
+    if (is_wp_error($post_response)) {
+        return $post_response;
+    }
+
+    // Parse JSON response of GET request
+    $get_body = wp_remote_retrieve_body($get_response);
+    $get_data = json_decode($get_body, true);
+
+    // Parse JSON response of POST request
+    $post_body = wp_remote_retrieve_body($post_response);
+    $post_data = json_decode($post_body, true);
+
+    // Return data
+    return array(
+        'get_response' => $get_data,
+        'post_response' => $post_data
+    );
+}
+
+
+
+
+
+
+
+
+
+// Shortcode to display event types
+function display_paddle_event_types()
+{
+    $data = get_paddle_event_types();
+
+    if (is_wp_error($data)) {
+        return 'Error: ' . $data->get_error_message();
+    }
+
+    echo '<h2>GET Response</h2>';
+    echo '<pre>';
+    print_r($data['get_response']);
+    echo '</pre>';
+
+    echo '<h2>POST Response</h2>';
+    echo '<pre>';
+    print_r($data['post_response']);
+    echo '</pre>';
+}
+add_shortcode('paddle_event_types', 'display_paddle_event_types');

@@ -72,6 +72,7 @@ function toggleAmountField(group) {
     if (selectValue === 'no_luck' || selectValue === 'add_another_spin') {
         amountField.style.display = 'none';
         amountField.value = '';
+        free_product.style.display = 'none';
     } else if (selectValue == 'free_product') {
         amountField.style.display = 'none';
         free_product.style.display = 'block';

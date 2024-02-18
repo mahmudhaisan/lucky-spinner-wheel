@@ -11,6 +11,7 @@ function save_winning_segment()
         $winning_segment = $_POST['winningSegment'];
         $updated_expiry_time = $_POST['updatedExpiryTime'];
         $user_id = get_current_user_id();
+
         update_user_meta($user_id, 'winning_segment', $winning_segment);
         update_user_meta($user_id, 'winning_segment_updated', $updated_expiry_time);
     }
@@ -30,7 +31,7 @@ function save_winning_segment()
             case 'fixed_discount':
                 $selected_spin_segment_number = $winning_segment_amount;
 
-                apply_winning_segment_discount();
+                // apply_winning_segment_discount();
 
                 break;
             case 'percentage_discount':
@@ -42,6 +43,8 @@ function save_winning_segment()
             case 'no_luck':
             case 'add_another_spin':
                 $selected_spin_segment_number = '';
+                update_user_meta($user_id, 'winning_segment', '');
+                update_user_meta($user_id, 'winning_segment_updated', '');
                 break;
             default:
                 // Handle unexpected segment types
@@ -64,8 +67,12 @@ function save_winning_segment()
         $html .= '<button class="btn btn-warning rounded-pill py-2 px-4 w-100 mt-3">Get It Now</button>';
         $html .= '</div>';
 
-        // Echo HTML markup
-        echo $html;
+
+        if($winning_segment_type != 'add_another_spin'){
+            echo $html;
+        }else{
+            echo 'add_another_spin';
+        }
     }
 
     // Terminate WordPress execution
@@ -84,7 +91,7 @@ function get_cart_info()
 
     $data = wheel_cart_conditions_values();
 
-   
+
 
     // Return cart data
     wp_send_json_success($data);
@@ -169,3 +176,19 @@ function remove_category_row()
     wp_die();
 }
 add_action('wp_ajax_remove_category_row', 'remove_category_row');
+
+
+
+
+add_action('wp_ajax_update_wining_segmant_on_countdown_expiration', 'update_wining_segmant_on_countdown_expiration');
+
+
+
+function update_wining_segmant_on_countdown_expiration(){
+   
+    $user_id = get_current_user_id();
+
+    // Update the user meta value to empty
+    update_user_meta($user_id, 'winning_segment', '');
+    update_user_meta($user_id, 'winning_segment_updated', '');
+}

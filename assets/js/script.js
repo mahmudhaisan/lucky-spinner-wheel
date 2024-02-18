@@ -179,8 +179,16 @@ jQuery(document).ready(function ($) {
                 updatedExpiryTime: updatedExpiryTime
             },
             success: function (response) {
-                $('.updated-segmant-data').html(response);
-                startCountdown();
+
+                if (response == 'add_another_spin') {
+                    $('#spin-wheel-content').show(); // Make sure the result is visible
+                    $('.add_new_spin_chance').html(''); // Clear the existing content
+                    var newContent = '<div class="add_new_spin_chance h4 text-center bg-dark text-white mt-2 p-2">You get another chance</div>';
+                    $('.add_new_spin_chance').html(newContent); // Update with new content
+                } else {
+                    $('.updated-segmant-data').html(response);
+                    startCountdown();
+                }
             },
             error: function (error) {
                 console.error('Error sending winning segment:', error);
@@ -230,7 +238,8 @@ jQuery(document).ready(function ($) {
 
             // Calculate the remaining time
             var distance = expiryTime - now;
-            // console.log(distance);
+            // var distance = 100 - now; 
+            console.log(distance);
 
             // Calculate days, hours, minutes, and seconds
             var days = Math.floor(distance / (1000 * 60 * 60 * 24));
@@ -253,6 +262,31 @@ jQuery(document).ready(function ($) {
                 clearInterval(x);
 
                 $("#countdown").html("");
+
+
+                // Make an AJAX request
+                $.ajax({
+                    type: 'POST',
+                    url: lucky_spin_wheel.ajaxurl, // Replace with the correct URL
+                    data: {
+                        action: 'update_wining_segmant_on_countdown_expiration', // Add your action name
+                      
+                    },
+                    success: function (response) {
+
+        
+                            $('#spin-wheel-content').show(); // Make sure the result is visible
+                            $('#spin-result-content').hide(); // Make sure the result is visible
+                    
+                        
+                    },
+                    error: function (error) {
+                        console.error('Error sending winning segment:', error);
+                    }
+                });
+
+
+
             }
         }, 1000);
     }
@@ -263,7 +297,7 @@ jQuery(document).ready(function ($) {
     // trigger various events on cart updates
     $(document.body).on('added_to_cart updated_cart_totals removed_from_cart cart_emptied', function (event, fragments, cart_hash, $button) {
 
-     
+
         $.ajax({
             url: lucky_spin_wheel.ajaxurl,
             type: 'POST',
@@ -288,7 +322,7 @@ jQuery(document).ready(function ($) {
                     var check_category_condition = response.data.check_category_condition;
 
                     var isCartEmpty = response.data.cart_empty;
-            
+
                     console.log(response.data.cart_empty);
 
 
@@ -302,7 +336,7 @@ jQuery(document).ready(function ($) {
                     }
 
 
-                    if(isCartEmpty) {
+                    if (isCartEmpty) {
                         $('#gift-button').remove();
                     }
 
@@ -327,13 +361,13 @@ jQuery(document).ready(function ($) {
             console.log('Other cart-related event:', event.type);
         }
 
-         if ($('.cart-empty').length > 0) {
-        // Cart is empty, perform actions here
-        console.log('Cart has been emptied.');
-    } else {
-        // Cart still has items, perform actions accordingly
-        console.log('Cart still has items.');
-    }
+        if ($('.cart-empty').length > 0) {
+            // Cart is empty, perform actions here
+            console.log('Cart has been emptied.');
+        } else {
+            // Cart still has items, perform actions accordingly
+            console.log('Cart still has items.');
+        }
     });
 
 
